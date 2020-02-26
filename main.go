@@ -57,12 +57,12 @@ func main() {
 	}
 
 	// archive simple file
-	err = ArchiveZip("simple3.txt")
+	err = ArchiveZip("test")
 	if err != nil {
 		log.Println(err)
 	}
 
-	// archive a dir
+	// archive a archive
 	err = ArchiveZip("simple2.tar")
 	if err != nil {
 		log.Println(err)
@@ -84,7 +84,6 @@ func main() {
 	UnPack("asimple43.tar.gz")
 
 	wg.Wait()
-	log.Println("complete")
 }
 
 // UnPack ...
@@ -94,6 +93,7 @@ func UnPack(filename string) error {
 		log.Println("Error :", err)
 	}
 	defer file.Close()
+	UnTar(file)
 	stat, _ := file.Stat()
 	if stat.IsDir() {
 		log.Println("is dir")
@@ -102,14 +102,44 @@ func UnPack(filename string) error {
 	}
 
 	log.Println("congratulations unpacked")
-	// switch mode := {
-	// case mode.IsDir():
-	// 	log.Println("directory")
-	// case mode.IsRegular():
-	// 	log.Println("file")
-	// }
-
 	return err
+}
+
+// UnTar ...
+func UnTar(r io.Reader) {
+	gzr, err := gzip.NewReader(r)
+	if err != nil {
+		return
+	}
+	defer gzr.Close()
+
+	tr := tar.NewReader(gzr)
+
+	for {
+		header, err := tr.Next()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		switch header.Typeflag {
+		case tar.TypeDir:
+			log.Println("dir")
+		case tar.TypeReg:
+			log.Println("regular")
+		}
+	}
+}
+
+// createArchDir ...
+func createArchDir(path string) error {
+	if path == "dir" {
+		os.Mkdir("name_of_dir", 0600)
+		// walk to the 
+	} else {
+		os.Create("filename")
+		// than call a tar function
+	}
+	return nil
 }
 
 // Compress ...
